@@ -4,3 +4,53 @@
  * This is a general purpose Gradle build.
  * Learn more about Gradle by exploring our Samples at https://docs.gradle.org/8.10.1/samples
  */
+
+plugins {
+    java
+    application // Apply the application plugin for creating runnable distributions
+    jacoco // Apply the Jacoco plugin for code coverage (if needed)
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21)) // Set JDK version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+val slf4jVersion = "1.7.36"
+val log4jVersion = "2.23.1"
+val picoCliVersion = "4.7.6"
+val junitVersion = "5.10.0"
+
+dependencies {
+    // Implementation dependencies (build and runtime)
+    implementation("org.slf4j:slf4j-api:$slf4jVersion") // Logging API: slf4j
+    implementation("info.picocli:picocli:$picoCliVersion")
+
+    // Runtime-only dependencies (for runtime, not build)
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion") // Logging implementation: log4j
+
+    // Test dependencies
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+}
+
+application {
+    mainClass.set("hu.bme.mit.ase.shingler.similarity.SimilarityApp") // Set the main class for the application plugin
+}
+
+tasks {
+    test {
+        useJUnitPlatform() // Use JUnit Platform for testing
+        testLogging.showStandardStreams = true
+        finalizedBy(jacocoTestReport) // Generate code coverage report after tests
+    }
+
+    jacocoTestReport {
+        inputs.files(test.get().outputs)
+    }
+}
